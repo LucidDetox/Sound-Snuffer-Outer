@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Noise Snuffer Outer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e9eff6;--bg2:#dbe6f3;--card:#ffffff;--ink:#0f1c2e;--muted:#566882;--line:#cfd9e6;--track:#d3dce8;--stage:#f6f9fd;
+  --c-white:#7c8ea8;--c-pink:#e8456f;--c-gray:#5877a8;--c-brown:#c98312;--c-blue:#0aa5c9;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1320;--bg2:#13203a;--card:#111c2f;--ink:#e8eef8;--muted:#8fa2bd;--line:#223350;--track:#25364f;--stage:#0a1119;
+    --c-white:#c7d3e6;--c-pink:#ff7a9c;--c-gray:#8fabd6;--c-brown:#f0b24a;--c-blue:#46d0ee;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1320;--bg2:#13203a;--card:#111c2f;--ink:#e8eef8;--muted:#8fa2bd;--line:#223350;--track:#25364f;--stage:#0a1119;
+  --c-white:#c7d3e6;--c-pink:#ff7a9c;--c-gray:#8fabd6;--c-brown:#f0b24a;--c-blue:#46d0ee;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--c-speech:#e2673d;--c-green:#2fa968;--c-violet:#8b5cf6;--c-rain:#14a39a;--c-waves:#4f6bed;--c-wind:#a3b33a}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 15% -10%,var(--bg2),transparent 70%),var(--bg);
+  color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 18px 40px}
+header{margin-bottom:22px}
+h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-.03em;font-variation-settings:"opsz" 96}
+header p{margin:0;color:var(--muted);max-width:52ch;font-size:1.05rem}
+.grid{display:grid;gap:18px}
+@media(min-width:900px){.grid{grid-template-columns:1.15fr 1fr;align-items:start}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}
+.stage{background:var(--stage);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+canvas{display:block;width:100%;height:230px}
+.axis{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;padding:6px 4px 0}
+.controls{display:flex;gap:16px;align-items:center;margin-top:16px;flex-wrap:wrap}
+.play{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:1.05rem;color:#fff;
+  background:linear-gradient(120deg,var(--c-brown),var(--c-pink) 55%,var(--c-blue));
+  padding:14px 26px;border-radius:99px;min-width:170px;text-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
+.play:active{transform:scale(.97)}
+.play[aria-pressed="true"]{background:var(--ink);color:var(--bg);text-shadow:none}
+.vol{flex:1;min-width:180px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.lab{font-weight:700}
+.num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+h2{font-size:1.1rem;margin:0 0 12px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{appearance:none;font:inherit;cursor:pointer;color:var(--ink);background:transparent;border:1.5px solid var(--line);
+  padding:8px 14px;border-radius:99px;font-weight:600;transition:background .15s,border-color .15s}
+.chip:hover{border-color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chan{padding:12px 0;border-top:1px solid var(--line)}
+.chan:first-of-type{border-top:0;padding-top:0}
+.chan small{display:block;color:var(--muted);font-size:.84rem;margin-bottom:2px}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--c);margin-right:8px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;--v:0%;--c:var(--ink);cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--c) var(--v),var(--track) var(--v))}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--track)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--c)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;margin-top:-8px;background:var(--card);border:4px solid var(--c);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--card);border:4px solid var(--c)}
+:focus-visible{outline:3px solid var(--c-blue);outline-offset:3px;border-radius:8px}
+.note{color:var(--muted);font-size:.86rem;margin:18px 2px 0;max-width:70ch}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.chip.more{border-style:dashed}
+.chip[hidden],.chan small[hidden],#mix2[hidden]{display:none}
+.chan{padding:8px 0}
+.warn{width:fit-content;background:linear-gradient(90deg,var(--c-brown),var(--c-pink) 40%,var(--c-white) 70%,var(--c-blue));color:#101826;font-size:.8rem;font-weight:600;letter-spacing:.01em;padding:3px 11px;border-radius:99px;animation:pop .4s ease-out,pulse .8s .4s ease-out 2}
+@keyframes pop{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--c-pink)}100%{box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion:reduce){.warn{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Noise Snuffer Outer</h1>
+    <p>Cover up talking, traffic, and loud music with tuned blends of noise. Pick a preset, then fine-tune the sliders if needed.</p>
+  </header>
+  <div class="grid">
+    <section class="card" aria-label="Player">
+      <div class="stage"><canvas id="viz" aria-label="Live sound spectrum"></canvas></div>
+      <div class="axis"><span>Low rumble</span><span>Voices</span><span>High hiss</span></div>
+      <div class="controls">
+        <button class="play" id="play" aria-pressed="false">Start masking</button>
+        <div class="vol">
+          <div class="row"><label class="lab" for="master">Overall volume</label><span class="num" id="o-master">35</span></div>
+          <input type="range" id="master" min="0" max="100" value="35">
+        </div>
+      </div>
+    </section>
+    <section class="card" aria-label="Mixer">
+      <h2>What are you masking?</h2>
+      <div class="chips" id="chips"></div>
+      <div class="tools"><button class="chip tool" id="maxAll">Max all</button><button class="chip tool" id="minAll">Min all</button></div>
+      <p class="num" id="msg" role="status" style="margin:0 0 6px">Tap a sound’s name to see what it covers.</p>
+      <div id="mix"></div>
+      <button class="chip more" id="moreS" aria-expanded="false" aria-controls="mix2" style="margin-top:6px">More sounds</button>
+      <div id="mix2" hidden></div>
+      <div class="tools" style="margin-top:12px"><button class="chip tool" id="maxAll2">Max all</button><button class="chip tool" id="minAll2">Min all</button></div>
+      <p class="num" id="msg2" role="status" style="margin:0;min-height:1.4em"></p>
+    </section>
+  </div>
+  <p class="note">This masks sound rather than cancelling it. It works best with headphones or decent speakers, since small phone speakers can't play deep rumble. For the best result, keep the volume just above the sound you want to hide, and start low.</p>
+</div>
+<script>
+const NOISES=[
+ {id:'white',name:'White',desc:'Steady, full hiss. Covers sharp, high sounds.'},
+ {id:'pink',name:'Pink',desc:'Softer highs. Covers voices and music.'},
+ {id:'gray',name:'Gray',desc:'Tuned to human hearing. Evens out loudness.'},
+ {id:'brown',name:'Brown',desc:'Deep rumble. Covers engines and bass.'},
+ {id:'blue',name:'Blue',desc:'Bright and airy. Covers clatter and whines.'},
+ {id:'speech',name:'Speech-shaped',desc:'Tuned to the human voice. Best for covering talking.'},
+ {id:'green',name:'Green',desc:'Midrange-heavy and natural. Covers voices and hum.'},
+ {id:'violet',name:'Violet',desc:'Very bright and thin. Covers hissing and whines.'},
+ {id:'rain',name:'Rain',plain:1,desc:'Soft patter. Easy to listen to for hours.'},
+ {id:'waves',name:'Ocean waves',plain:1,desc:'Slow rise and fall. Covers low rumble.'},
+ {id:'wind',name:'Wind',plain:1,desc:'Gently shifting tone. Softens background noise.'}];
+const PRESETS={
+ 'Talking':{white:10,pink:60,gray:70,brown:15,blue:0,speech:60,green:20},
+ 'Cars':{white:15,pink:40,gray:20,brown:75,blue:0},
+ 'Mexican music':{white:20,pink:65,gray:55,brown:20,blue:10},
+ 'Rock':{white:45,pink:60,gray:30,brown:35,blue:10},
+ 'Rap':{white:10,pink:40,gray:45,brown:70,blue:0},
+ 'Everything':{white:30,pink:50,gray:50,brown:40,blue:10},
+ 'Neighbors or TV':{white:10,pink:55,gray:40,brown:65,blue:0,speech:25,green:20},
+ 'Snoring':{white:5,pink:45,gray:20,brown:75,blue:0,waves:20},
+ 'Construction':{white:50,pink:30,gray:20,brown:65,blue:5,violet:10},
+ 'Office chatter':{white:15,pink:60,gray:70,brown:20,blue:0,speech:55,green:30},
+ 'Kids playing':{white:55,pink:25,gray:55,brown:10,blue:40,violet:15},
+ 'Typing':{white:55,pink:20,gray:35,brown:10,blue:50,violet:20,rain:25},
+ 'Lawn mowers':{white:50,pink:30,gray:15,brown:70,blue:10,wind:15},
+ 'EDM':{white:40,pink:40,gray:30,brown:75,blue:20,violet:10}};
+const $=id=>document.getElementById(id);
+let ctx,master,analyser,gains={},playing=false;
+const BUF={gray:'white',speech:'white',green:'white',wind:'white',waves:'pink'};
+const BOOST={speech:3,green:3,rain:1.5,waves:1.5,wind:2.5};
+
+function makeBuf(type){
+  const len=ctx.sampleRate*5,buf=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0,last=0,prev=0,prev2=0;
+    for(let i=0;i<len;i++){
+      const w=Math.random()*2-1;let v;
+      if(type==='pink'){
+        b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;
+        b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;
+        v=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11;b6=w*.115926;
+      }else if(type==='brown'){last=(last+.02*w)/1.02;v=last*3.5}
+      else if(type==='blue'){v=(w-prev)*.5;prev=w}
+      else if(type==='violet'){v=(w-2*prev+prev2)*.3;prev2=prev;prev=w}
+      else if(type==='rain'){v=w*(.3+.7*Math.random()*Math.random())}
+      else v=w*.5;
+      d[i]=v;
+    }
+  }
+  return buf;
+}
+function filt(type,f,g,q){const n=ctx.createBiquadFilter();n.type=type;n.frequency.value=f;n.gain.value=g;if(q)n.Q.value=q;return n}
+function build(){
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  master=ctx.createGain();master.gain.value=0;
+  analyser=ctx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=.82;
+  const comp=ctx.createDynamicsCompressor();
+  master.connect(analyser);analyser.connect(comp);comp.connect(ctx.destination);
+  NOISES.forEach(n=>{
+    const s=ctx.createBufferSource();s.buffer=makeBuf(BUF[n.id]||n.id);s.loop=true;
+    const g=ctx.createGain();g.gain.value=0;let node=s;
+    if(n.id==='gray'){ // approximate equal-loudness shaping
+      const a=filt('lowshelf',200,12),b=filt('peaking',3000,-10,.6),c=filt('highshelf',9000,10);
+      s.connect(a);a.connect(b);b.connect(c);node=c;
+    }
+    const lfo=(f,a,p)=>{const o=ctx.createOscillator(),k=ctx.createGain();o.frequency.value=f;k.gain.value=a;o.connect(k);k.connect(p);o.start()};
+    if(n.id==='speech'){const a=filt('highpass',300,0,.7),b=filt('lowpass',3400,0,.7);s.connect(a);a.connect(b);node=b}
+    else if(n.id==='green'){const a=filt('bandpass',500,0,.4);s.connect(a);node=a}
+    else if(n.id==='rain'){const a=filt('highpass',600,0,.7),b=filt('lowpass',8000,0,.7);s.connect(a);a.connect(b);node=b}
+    else if(n.id==='waves'){const a=filt('lowpass',1100,0,.7),m=ctx.createGain();m.gain.value=.55;lfo(.11,.45,m.gain);s.connect(a);a.connect(m);node=m}
+    else if(n.id==='wind'){const a=filt('bandpass',600,0,1.1),m=ctx.createGain();m.gain.value=.6;lfo(.08,350,a.frequency);lfo(.13,.4,m.gain);s.connect(a);a.connect(m);node=m}
+    node.connect(g);g.connect(master);s.start();gains[n.id]=g;
+  });
+  NOISES.forEach(n=>sync(n.id));syncMaster();
+}
+function sync(id,tc){
+  const el=$('r-'+id),v=+el.value;
+  el.style.setProperty('--v',v+'%');$('o-'+id).textContent=v;
+  if(gains[id])gains[id].gain.setTargetAtTime(Math.pow(v/100,2)*.5*(BOOST[id]||1),ctx.currentTime,tc||.05);
+}
+function syncMaster(){
+  const el=$('master'),v=+el.value;
+  el.style.setProperty('--v',v+'%');$('o-master').textContent=v;
+  if(master)master.gain.setTargetAtTime(playing?Math.pow(v/100,2)*.9:0,ctx.currentTime,.1);
+}
+function markPreset(name){
+  document.querySelectorAll('.chip[data-p]').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.p===name)));
+}
+function applyPreset(name){
+  const p=PRESETS[name];NOISES.forEach(n=>{$('r-'+n.id).value=p[n.id]||0;sync(n.id,.08)});markPreset(name);
+}
+
+// Build the interface
+$('chips').innerHTML=Object.keys(PRESETS).map((k,i)=>`<button class="chip" data-p="${k}"${i>5?' hidden':''} aria-pressed="false">${k}</button>`).join('')+'<button class="chip more" id="moreP" aria-expanded="false">More presets</button>';
+const rowHTML=n=>`<div class="chan" style="--c:var(--c-${n.id})">
+  <div class="row"><label class="lab" for="r-${n.id}"><span class="dot"></span>${n.name}${n.plain?'':' noise'}</label><span class="num" id="o-${n.id}">0</span></div>
+  <small hidden>${n.desc}</small>
+  <input type="range" id="r-${n.id}" min="0" max="100" value="0"></div>`;
+$('mix').innerHTML=NOISES.slice(0,5).map(rowHTML).join('');
+$('mix2').innerHTML=NOISES.slice(5).map(rowHTML).join('');
+$('master').style.setProperty('--c','var(--c-blue)');
+
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&b.dataset.p)applyPreset(b.dataset.p)});
+NOISES.forEach(n=>$('r-'+n.id).addEventListener('input',()=>{sync(n.id);markPreset('')}));
+$('master').addEventListener('input',syncMaster);
+$('play').addEventListener('click',async()=>{
+  if(!ctx)build();
+  await ctx.resume();
+  playing=!playing;
+  $('play').setAttribute('aria-pressed',String(playing));
+  $('play').textContent=playing?'Pause':'Start masking';
+  syncMaster();
+});
+
+// Live spectrum
+const cv=$('viz'),g2=cv.getContext('2d');let W=0,H=0;
+function resize(){const r=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*r;cv.height=H*r;g2.setTransform(r,0,0,r,0,0)}
+addEventListener('resize',resize);resize();
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function draw(){
+  requestAnimationFrame(draw);
+  g2.clearRect(0,0,W,H);
+  const bars=56,gap=3,bw=(W-gap*(bars-1))/bars;
+  const grad=g2.createLinearGradient(0,0,W,0);
+  [['--c-brown',0],['--c-pink',.4],['--c-white',.7],['--c-blue',1]].forEach(([v,p])=>grad.addColorStop(p,cssv(v)));
+  g2.fillStyle=grad;
+  let data=null;
+  if(analyser){data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data)}
+  const nyq=(ctx?ctx.sampleRate:44100)/2;
+  for(let i=0;i<bars;i++){
+    let h=4;
+    if(data){
+      const f0=30*Math.pow(16000/30,i/bars),f1=30*Math.pow(16000/30,(i+1)/bars);
+      const a=Math.floor(f0/nyq*data.length),b=Math.max(a+1,Math.ceil(f1/nyq*data.length));
+      let s=0;for(let k=a;k<b;k++)s+=data[k];
+      h=Math.max(4,(s/(b-a)/255)*H*.95);
+    }
+    const x=i*(bw+gap),r=Math.min(bw/2,6);
+    g2.beginPath();g2.roundRect?g2.roundRect(x,H-h,bw,h,r):g2.rect(x,H-h,bw,h);g2.fill();
+  }
+}
+draw();
+const HINT='Tap a sound’s name to see what it covers.';let msgT;
+function say(t,w){const a=[$('msg'),$('msg2')];a.forEach(e=>{e.textContent=t;e.classList.remove('warn');if(w){void e.offsetWidth;e.classList.add('warn')}});clearTimeout(msgT);msgT=setTimeout(()=>{$('msg').textContent=HINT;$('msg2').textContent='';a.forEach(e=>e.classList.remove('warn'))},w?5000:3500)}
+function setAll(v,tc){NOISES.forEach(n=>{$('r-'+n.id).value=v;sync(n.id,tc)});markPreset('')}
+function doMax(){const m=$('master'),cut=+m.value>25;if(cut){m.value=25;syncMaster()}setAll(100,.15);say(cut?'Volume lowered to 25':'All sliders at max',cut)}
+function doMin(){setAll(0,.15);say('All sliders reset')}
+['maxAll','maxAll2'].forEach(i=>$(i).addEventListener('click',doMax));
+['minAll','minAll2'].forEach(i=>$(i).addEventListener('click',doMin));
+
+$('moreS').addEventListener('click',()=>{const h=$('mix2').hidden=!$('mix2').hidden;$('moreS').setAttribute('aria-expanded',String(!h));$('moreS').textContent=h?'More sounds':'Fewer sounds'});
+$('moreP').addEventListener('click',()=>{const ex=$('moreP').getAttribute('aria-expanded')!=='true';document.querySelectorAll('.chip[data-p]').forEach((c,i)=>{if(i>5)c.hidden=!ex});$('moreP').setAttribute('aria-expanded',String(ex));$('moreP').textContent=ex?'Fewer presets':'More presets'});
+document.querySelectorAll('.chan .lab').forEach(l=>l.addEventListener('click',()=>{const s=l.closest('.chan').querySelector('small');s.hidden=!s.hidden}));
+applyPreset('Talking');
+</script>
+</body>
+</html>
